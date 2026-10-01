@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   View,
@@ -11,6 +11,9 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = 'schedule_app_data_v1';
 
 // ---------- الألوان العامة للتطبيق (بيج هادئ قريب من كلود) ----------
 const APP_BG = '#F5F0E8';
@@ -72,6 +75,26 @@ export default function App() {
   const [editingSchedule, setEditingSchedule] = useState(null); // لتعديل التواريخ فقط
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showManageSubjects, setShowManageSubjects] = useState(false);
+  const hasLoadedOnce = useRef(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.schedules) setSchedules(parsed.schedules);
+          if (parsed.categories) setCategories(parsed.categories);
+        }
+      } catch (e) {}
+      finally { hasLoadedOnce.current = true; }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedOnce.current) return;
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ schedules, categories })).catch(() => {});
+  }, [schedules, categories]);
 
   function openDrawer() {
     setDrawerOpen(true);
