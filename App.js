@@ -15,8 +15,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { GestureHandlerRootView, PinchGestureHandler, State } from 'react-native-gesture-handler';
 
-// ---------- الألوان العامة للتطبيق (بيج هادئ قريب من كلود) ----------
 const APP_BG = '#F5F0E8';
 const CARD_BG = '#FFFFFF';
 const TEXT_DARK = '#3D3929';
@@ -66,9 +66,6 @@ function lightenColor(hex, amount = 0.82) {
   return `rgb(${nr},${ng},${nb})`;
 }
 
-// ==================================================================
-// التطبيق الرئيسي
-// ==================================================================
 export default function App() {
   const [schedules, setSchedules] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -79,7 +76,7 @@ export default function App() {
   const [activeScheduleId, setActiveScheduleId] = useState(null);
   const [activeNoteId, setActiveNoteId] = useState(null);
 
-  const [screen, setScreen] = useState('home'); // home | scheduleList | scheduleView | notesList | noteEditor | photosGrid
+  const [screen, setScreen] = useState('home');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerAnim = useState(new Animated.Value(-DRAWER_WIDTH))[0];
   const fadeAnim = useState(new Animated.Value(1))[0];
@@ -92,7 +89,6 @@ export default function App() {
 
   const hasLoadedOnce = useRef(false);
 
-  // ---------- تحميل البيانات (مع ترحيل النسخة القديمة إن وجدت) ----------
   useEffect(() => {
     (async () => {
       try {
@@ -119,7 +115,6 @@ export default function App() {
     })();
   }, []);
 
-  // ---------- حفظ تلقائي ----------
   useEffect(() => {
     if (!hasLoadedOnce.current) return;
     AsyncStorage.setItem(
@@ -128,7 +123,6 @@ export default function App() {
     ).catch(() => {});
   }, [schedules, categories, notes, photos, recentItems]);
 
-  // ---------- انتقال سلس بين الشاشات ----------
   useEffect(() => {
     fadeAnim.setValue(0);
     Animated.timing(fadeAnim, { toValue: 1, duration: 230, useNativeDriver: true }).start();
@@ -156,7 +150,6 @@ export default function App() {
     setScreen('home');
   }
 
-  // ---------- عمليات الجداول ----------
   function addCategory(name, color) {
     setCategories((prev) => [...prev, { id: uid(), name, color }]);
   }
@@ -193,7 +186,6 @@ export default function App() {
     setSchedules((prev) => prev.map((s) => (s.id === id ? { ...s, subjects } : s)));
   }
 
-  // ---------- عمليات النوتس ----------
   function addNote(title) {
     const note = { id: uid(), title, blocks: [{ id: uid(), type: 'text', text: '' }], updatedAt: Date.now() };
     setNotes((prev) => [...prev, note]);
@@ -225,7 +217,6 @@ export default function App() {
     ]);
   }
 
-  // ---------- عمليات الصور ----------
   async function addPhotos() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
@@ -273,8 +264,8 @@ export default function App() {
   }
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaView style={styles.safe}>
-      {/* الهيدر */}
       <View style={styles.header}>
         <TouchableOpacity onPress={openDrawer} style={styles.menuBtn}>
           <Text style={styles.menuIcon}>≡</Text>
@@ -300,7 +291,6 @@ export default function App() {
         )}
       </View>
 
-      {/* محتوى الشاشة مع انتقال سلس */}
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         {screen === 'home' && (
           <HomeScreen onOpen={(s) => setScreen(s)} />
@@ -345,7 +335,6 @@ export default function App() {
         )}
       </Animated.View>
 
-      {/* الدرور: قائمة الأحدث فقط */}
       {drawerOpen && <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={closeDrawer} />}
       <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
         <Text style={styles.drawerTitle}>الأحدث</Text>
@@ -379,7 +368,6 @@ export default function App() {
         </ScrollView>
       </Animated.View>
 
-      {/* مودالات الجدول */}
       <Modal visible={showAddSchedule} animationType="slide">
         <AddScheduleScreen
           categories={categories}
@@ -422,17 +410,14 @@ export default function App() {
         )}
       </Modal>
 
-      {/* مودال إضافة محاضرة/موضوع */}
       <Modal visible={showAddNote} transparent animationType="fade">
         <AddNoteModal onCancel={() => setShowAddNote(false)} onSave={addNote} />
       </Modal>
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
-// ==================================================================
-// الشاشة الرئيسية
-// ==================================================================
 function HomeScreen({ onOpen }) {
   return (
     <ScrollView contentContainerStyle={styles.homeContainer}>
@@ -463,9 +448,6 @@ function HomeScreen({ onOpen }) {
   );
 }
 
-// ==================================================================
-// فرع الجدول: قائمة الجداول
-// ==================================================================
 function ScheduleListScreen({ schedules, activeScheduleId, onSelect, onEdit, onAddSchedule, onAddCategory }) {
   return (
     <View style={{ flex: 1, padding: 16 }}>
@@ -500,7 +482,6 @@ function ScheduleListScreen({ schedules, activeScheduleId, onSelect, onEdit, onA
   );
 }
 
-// ---------------- عرض الجدول الأسبوعي ----------------
 function ScheduleView({ schedule, categories }) {
   const dayGroups = DAYS.map((dayName, idx) => {
     const subjects = schedule.subjects.filter((sub) => sub.days.includes(idx));
@@ -550,7 +531,6 @@ function ScheduleView({ schedule, categories }) {
   );
 }
 
-// ---------------- شاشة إدارة المواد ----------------
 function ManageSubjectsScreen({ schedule, categories, onAddCategory, onClose, onUpdateSubjects }) {
   const [subjects, setSubjects] = useState(schedule.subjects);
   const [editingSubject, setEditingSubject] = useState(null);
@@ -636,7 +616,6 @@ function ManageSubjectsScreen({ schedule, categories, onAddCategory, onClose, on
   );
 }
 
-// ---------------- شاشة إضافة جدول كامل ----------------
 function AddScheduleScreen({ categories, onAddCategory, onCancel, onSave }) {
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -759,7 +738,6 @@ function AddScheduleScreen({ categories, onAddCategory, onCancel, onSave }) {
   );
 }
 
-// ---------------- مودال إضافة / تعديل مادة ----------------
 function AddSubjectModal({ categories, onAddCategory, onCancel, onSave, initial }) {
   const isEdit = !!initial;
   const [name, setName] = useState(initial ? initial.name : '');
@@ -887,7 +865,6 @@ function AddSubjectModal({ categories, onAddCategory, onCancel, onSave, initial 
   );
 }
 
-// ---------------- مودال إضافة تصنيف ----------------
 function AddCategoryModal({ onCancel, onSave }) {
   const [name, setName] = useState('');
   const [color, setColor] = useState(CATEGORY_COLORS[0]);
@@ -937,7 +914,6 @@ function AddCategoryModal({ onCancel, onSave }) {
   );
 }
 
-// ---------------- مودال تعديل جدول (اسم + تواريخ + حذف) ----------------
 function EditScheduleModal({ schedule, onCancel, onSave, onDelete }) {
   const [name, setName] = useState(schedule.name);
   const [startDate, setStartDate] = useState(schedule.startDate || '');
@@ -997,9 +973,6 @@ function EditScheduleModal({ schedule, onCancel, onSave, onDelete }) {
   );
 }
 
-// ==================================================================
-// فرع النوتس
-// ==================================================================
 function NotesListScreen({ notes, onSelect, onAdd, onDelete }) {
   return (
     <View style={{ flex: 1, padding: 16 }}>
@@ -1100,7 +1073,7 @@ function NoteEditorScreen({ note, onChangeBlocks }) {
     if (!result.canceled) {
       const newBlocks = [
         ...blocks,
-         { id: uid(), type: 'image', uri: result.assets[0].uri },
+        { id: uid(), type: 'image', uri: result.assets[0].uri },
         { id: uid(), type: 'text', text: '' },
       ];
       persist(newBlocks);
@@ -1148,12 +1121,21 @@ function NoteEditorScreen({ note, onChangeBlocks }) {
   );
 }
 
-// ==================================================================
-// فرع الصور
-// ==================================================================
 function PhotosGridScreen({ photos, onAdd, onDelete }) {
   const [preview, setPreview] = useState(null);
   const itemSize = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    scale.setValue(1);
+  }, [preview]);
+
+  const onPinchEvent = Animated.event([{ nativeEvent: { scale } }], { useNativeDriver: true });
+  function onPinchStateChange(event) {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
+    }
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -1176,17 +1158,25 @@ function PhotosGridScreen({ photos, onAdd, onDelete }) {
       </ScrollView>
 
       <Modal visible={!!preview} transparent animationType="fade">
-        <TouchableOpacity style={styles.photoPreviewOverlay} activeOpacity={1} onPress={() => setPreview(null)}>
-          {preview && <Image source={{ uri: preview.uri }} style={styles.photoPreviewImage} resizeMode="contain" />}
-        </TouchableOpacity>
+        <View style={styles.photoPreviewOverlay}>
+          <TouchableOpacity style={styles.previewBackBtn} onPress={() => setPreview(null)}>
+            <Text style={styles.previewBackIcon}>←</Text>
+          </TouchableOpacity>
+          {preview && (
+            <PinchGestureHandler onGestureEvent={onPinchEvent} onHandlerStateChange={onPinchStateChange}>
+              <Animated.Image
+                source={{ uri: preview.uri }}
+                style={[styles.photoPreviewImage, { transform: [{ scale }] }]}
+                resizeMode="contain"
+              />
+            </PinchGestureHandler>
+          )}
+        </View>
       </Modal>
     </View>
   );
 }
 
-// ==================================================================
-// الأنماط
-// ==================================================================
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: APP_BG },
   header: {
@@ -1367,5 +1357,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   photoPreviewImage: { width: '88%', height: '60%' },
+  previewBackBtn: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: CARD_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: BORDER,
+    zIndex: 5,
+  },
+  previewBackIcon: { fontSize: 20, color: TEXT_DARK },
 });
-                
+            
