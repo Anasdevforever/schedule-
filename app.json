@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "schedule-app",
+    "icon": "./assets/icon.png",
     "slug": "schedule-app"
   }
 }
