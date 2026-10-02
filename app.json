@@ -1,7 +1,13 @@
 {
   "expo": {
     "name": "schedule-app",
+    "slug": "schedule-app",
     "icon": "./assets/icon.png",
-    "slug": "schedule-app"
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#F5F0E8"
+      }
+    }
   }
 }
