@@ -2,12 +2,13 @@
   "expo": {
     "name": "schedule-app",
     "slug": "schedule-app",
-    "icon": "./assets/icon.png",
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#F5F0E8"
+    "extra": {
+      "eas": {
+        "projectId": "e99271b2-df63-4638-a657-9ad0ef791ca8"
       }
+    },
+    "android": {
+      "package": "com.dev_forever.scheduleapp"
     }
   }
 }
