@@ -4,11 +4,7 @@
     "slug": "schedule-app",
     "icon": "./assets/icon.png",
     "android": {
-      "package": "com.dev_forever.scheduleapp",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#F5F0E8"
-      }
+      "package": "com.dev_forever.scheduleapp"
     },
     "extra": {
       "eas": {
